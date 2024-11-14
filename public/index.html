@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Elasticsearch</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Data Table from Elasticsearch</h1>
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>No</th>
+                    <th>Name</th>
+                    <th>Gender</th>
+                    <th>Weight(kg)</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <!-- data dari elasticsearch -->
+            </tbody>
+        </table>
+
+        <div class="mt-5">
+            <h3 class="mb-4">Count Data from Elasticsearch</h3>
+            <p id="jmlh_data"></p>
+        </div>
+
+        <div class="mt-5">
+            <h3 class="mb-4">Count Data by Gender from Elasticsearch</h3>
+            <canvas id="myDoughnutChart" width="400" height="200"></canvas>
+            <p id="jmlh_data_by_j"></p>
+            <p id="jmlh_data_by_b"></p>
+        </div>
+    </div>
+
+
+</body>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    //Get data from endpoint backend
+    const getData = async () => {
+        try {
+            const response = await fetch('/api/data'); //call endpoint di express
+            const data = await response.json();
+
+            //menampilkan data ke dalam HTML
+            const tablebody = document.getElementById('table-body');
+            tablebody.innerHTML = '';
+
+            // loop melalui data dan menambah ke HTML
+            data.forEach((item, index) => {
+                const row = document.createElement('tr');
+                // div.classList.add('item');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.nama}</td>
+                    <td>${item.jk}</td>
+                    <td>${item.weight} kg</td>
+                    `;
+                tablebody.appendChild(row);
+            });
+
+            console.error("Data", data)
+
+        } catch (error) {
+            console.error("Gagal mengambil data", error)
+        }
+    }
+
+
+    const countData = async () => {
+        try {
+            const response = await fetch('/api/count/data'); //call endpoint di express
+            const data = await response.json();
+            document.getElementById('jmlh_data').textContent = `${data.Total_Data || 'N/A'} Data`;
+        } catch (error) {
+            console.error("Gagal mengambil data", error)
+        }
+
+    }
+
+    const countDatabyGender = async () => {
+        try {
+            const response = await fetch('/api/count/bygender'); //call endpoint di express
+            const data = await response.json();
+
+            // Menyiapkan label dan data untuk doughnut chart
+            const labels = Object.keys(data);
+            // const counts = Object.values(data);
+
+            // Membuat grafik doughnut dengan Chart.js
+            const ctx = document.getElementById('myDoughnutChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut', // Tipe grafik: doughnut
+                data: {
+                    labels: [`Jantan`, `Betina`],
+                    datasets: [{
+                        label: [''],
+                        data: [data.Total_Jantan, data.Total_Betina],
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(255, 99, 132, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 99, 132, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (tooltipItem) {
+                                    return `${tooltipItem.label}: ${tooltipItem.raw}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            console.error("Gagal mengambil data:", error);
+            document.getElementById('error').textContent = 'Gagal mengambil data';
+        }
+
+    }
+
+    getData()
+    countData()
+    countDatabyGender()
+
+</script>
+
+
+</html>
