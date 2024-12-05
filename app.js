@@ -2,7 +2,7 @@ const express = require("express");
 const {Client} = require("@elastic/elasticsearch");
 const app = express();
 const port = 3000; 
-app.use(express.static('public')); // Menyajikan file statis dari folder 'public'
+// app.use(express.static('public')); // Menyajikan file statis dari folder 'public'
 
 //Konfigurasi elasticsearch
 const client = new Client ({
